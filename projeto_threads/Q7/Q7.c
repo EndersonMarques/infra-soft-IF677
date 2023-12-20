@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#define TempoDormir 1
+
 int *interseccao;
 pthread_mutex_t mutex[5]; //um array de mutex é utilizado para travar somente a intersecção onde há disputa entre os trens
 pthread_cond_t cheia[5]; //será utilizado um array de cond pois cada intersecção terá sua proŕia condição não afetando as outras intersecções
@@ -23,7 +25,7 @@ void *rotina(void *thread_id) {
         printf("Trem %d entrou na interseccao %d, tem %d trens na interseccao\n", id, i + 1, interseccao[i]);
         pthread_mutex_unlock(&mutex[i]); //sai da região critica
 
-        usleep(500000); //o trem permanece na intersecção por 500ms;
+        sleep(TempoDormir); //o trem permanece na intersecção por 1s;
         
         pthread_mutex_lock(&mutex[i]); //entra na região critica
         interseccao[i]--;              //o trem sai da intersecção
