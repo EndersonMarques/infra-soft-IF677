@@ -2,59 +2,64 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define NUM_INC 4  //Numero de Incognitas
-#define NUM_EXEC 5  //Numero de Execuções
-#define NUM_THREAD 4 //Numero de Threads
+#define DESCONHECIDOS 4 //Numero de Incognitas
+#define ITERACOES 5 //Numero de Execuções
+#define N_THREADS 4 //Numero de Threads
 
-int A[NUM_INC][NUM_INC] = {{1, 2, -1, 3},{3, -1, 2, -4},{2, 3, -4, 1},{-1, 1, 5, -2}};
-int B[NUM_INC] = {10, -5, 12, 8};
-float X[NUM_INC] = {1, 1, 1, 1};
-float newX[NUM_EXEC][NUM_INC];
-pthread_barrier_t barrier;
+int MATRIZ[DESCONHECIDOS][DESCONHECIDOS] = {
+  {1, 2, -1,  3},
+  {3, -1, 2, -4},
+  {2, 3, -4,  1},
+  {-1, 1, 5, -2}
+};
+int VETOR[DESCONHECIDOS] = {10, -5, 12, 8};
+float SOLUCAO[DESCONHECIDOS] = {1, 1, 1, 1};
+float NOVA_SOLUCAO[ITERACOES][DESCONHECIDOS];
+pthread_barrier_t barreira;
 
-void calculate(float *X, float *newX, int *A, int *B, int i){
-    float P = 0; //Parenteses
-    for(int j = 0; j < NUM_INC; j++){
-        if(j != i){
-            P += A[j]*X[j];
-        }
-    }
-    P = B[i] - P;
-    newX[i] = P/A[i];
+void calcular(float *SOLUCAO, float *NOVA_SOLUCAO, int *MATRIZ, int *VETOR, int i){
+  float SOMA = 0; //Parenteses
+  for(int j = 0; j < DESCONHECIDOS; j++){
+      if(j != i){
+          SOMA += MATRIZ[j]*SOLUCAO[j];
+      }
+  }
+  SOMA = VETOR[i] - SOMA;
+  NOVA_SOLUCAO[i] = SOMA/MATRIZ[i];
 }
 
-void *Jacobi(void *Id){
-    int id = *(int *)Id;
-    for(int a = 0; a < NUM_EXEC; a++){
-        for(int b = id; b < NUM_INC; b += NUM_THREAD){
-            calculate(X, newX[a], A[b], B, b);
-        }
-        pthread_barrier_wait(&barrier); //Sincronização das threads (Posiciona barreira)
-        for(int b = id; b < NUM_INC; b += NUM_THREAD){ //Passa os valores do novo X para o X
-            X[b] = newX[a][b];
-        }
-        pthread_barrier_wait(&barrier); //Sincronização das threads
-    }
-    pthread_exit(NULL);
+void *Jacobi(void *ID){
+  int id = *(int *)ID;
+  for(int i = 0; i < ITERACOES; i++){
+      for(int j = id; j < DESCONHECIDOS; j += N_THREADS){
+          calcular(SOLUCAO, NOVA_SOLUCAO[i], MATRIZ[j], VETOR, j);
+      }
+      pthread_barrier_wait(&barreira); //Sincronização das threads (Posiciona barreira)
+      for(int j = id; j < DESCONHECIDOS; j += N_THREADS){ //Passa os valores do novo X para o X
+          SOLUCAO[j] = NOVA_SOLUCAO[i][j];
+      }
+      pthread_barrier_wait(&barreira); //Sincronização das threads
+  }
+  pthread_exit(NULL);
 }
 
 int main(){
-    pthread_t Thread[NUM_THREAD];
-    pthread_barrier_init(&barrier, NULL, NUM_THREAD); //Cria a barreira
-    int Id[NUM_THREAD];
-    for(int a = 0; a < NUM_THREAD; a++){ //Cria as threads
-        Id[a] = a;
-        pthread_create(&Thread[a], NULL, Jacobi, (void *)&Id[a]);
-    }
-    for(int a = 0; a < NUM_THREAD; a++){ //Espera todas as threads terminarem de execcutar
-        pthread_join(Thread[a], NULL);
-    }
-    for(int a = 0; a < NUM_EXEC; a++){ //Printa os resultados obtidos
-        printf("Resultado após %d iterações: \n", a+1);
-        for(int b = 0; b < NUM_INC; b++){
-            printf("X%d = %.4f\n", b, newX[a][b]);
-        }
-        printf("\n");
-    }
-    return 0;
+  pthread_t THREADS[N_THREADS];
+  pthread_barrier_init(&barreira, NULL, N_THREADS); //Cria a barreira
+  int ID[N_THREADS];
+  for(int i = 0; i < N_THREADS; i++){ //Cria as threads
+      ID[i] = i;
+      pthread_create(&THREADS[i], NULL, Jacobi, (void *)&ID[i]);
+  }
+  for(int i = 0; i < N_THREADS; i++){ //Espera todas as threads terminarem de execcutar
+      pthread_join(THREADS[i], NULL);
+  }
+  for(int i = 0; i < ITERACOES; i++){ //Printa os resultados obtidos
+      printf("Resultado após %d iterações: \n", i+1);
+      for(int j = 0; j < DESCONHECIDOS; j++){
+          printf("X%d = %.4f\n", j, NOVA_SOLUCAO[i][j]);
+      }
+      printf("\n");
+  }
+  return 0;
 }

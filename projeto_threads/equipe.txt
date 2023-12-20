@@ -1,0 +1,10 @@
+Edgar Carlos Rodrigues de Oliveira - ecro
+Enderson Marques de Matos Filho - emmf
+José Basílio da Silva Neto - jbsn3
+
+
+Para executar a questão use o comando make run-N
+Onde N é o número da questão (1 à 7)
+
+Exemplo:
+    make run-3 // para rodar a questão 3
