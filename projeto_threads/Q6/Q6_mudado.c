@@ -1,6 +1,3 @@
-Claro, aqui está o código com nomes de variáveis em português:
-
-```c
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -138,6 +135,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-```
-
-Espero que isso atenda às suas necessidades!
